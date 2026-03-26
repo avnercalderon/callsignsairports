@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATC Quiz — מחלקת הדרכה</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== THEME VARIABLES ===== */
+:root {
+  --bg: #080c18;
+  --bg2: #0e1528;
+  --bg3: #141d35;
+  --bg4: #1a2440;
+  --border: rgba(100,160,255,0.12);
+  --border2: rgba(100,160,255,0.28);
+  --accent: #4a9eff;
+  --accent2: #2563eb;
+  --green: #22c55e;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --purple: #a855f7;
+  --text: #e8f0ff;
+  --text2: rgba(180,210,255,0.65);
+  --text3: rgba(140,170,220,0.38);
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+body.day-mode {
+  --bg: #f0f4ff;
+  --bg2: #ffffff;
+  --bg3: #e8edf8;
+  --bg4: #dde4f5;
+  --border: rgba(60,100,200,0.14);
+  --border2: rgba(60,100,200,0.3);
+  --accent: #2563eb;
+  --accent2: #1d4ed8;
+  --text: #1a2440;
+  --text2: rgba(30,50,100,0.65);
+  --text3: rgba(30,50,100,0.38);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Heebo', sans-serif;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* grid bg night only */
+body:not(.day-mode)::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(74,158,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,158,255,0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ===== LAYOUT ===== */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* TOP BAR */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-logo { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
+.topbar-sub { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+.icon-btn {
+  width: 36px; height: 36px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; transition: all 0.15s; color: var(--text2);
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: var(--bg4); border-color: var(--border2); color: var(--text); }
+
+/* MAIN CONTENT */
+.main { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px 48px; position: relative; z-index: 1; }
+.container { width: 100%; max-width: 640px; }
+
+/* ===== SCREEN SYSTEM ===== */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ===== HOME SCREEN ===== */
+.home-hero { text-align: center; padding: 32px 0 28px; }
+.home-icon {
+  width: 72px; height: 72px; margin: 0 auto 16px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 34px;
+}
+.home-hero h1 { font-size: 26px; font-weight: 900; margin-bottom: 6px; }
+.home-hero p { color: var(--text2); font-size: 13px; }
+
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.mode-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 16px;
+  cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.mode-card:hover { border-color: var(--border2); background: var(--bg3); transform: translateY(-1px); }
+.mode-card.full { grid-column: span 2; }
+.mode-card-icon { font-size: 28px; margin-bottom: 8px; }
+.mode-card-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.mode-card-desc { font-size: 11px; color: var(--text2); }
+.mode-card-count {
+  display: inline-block; margin-top: 8px;
+  background: var(--bg3); border: 1px solid var(--border);
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  padding: 2px 8px; border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.q-count-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.q-count-row label { font-size: 13px; color: var(--text2); white-space: nowrap; }
+.q-count-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.q-count-val {
+  font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700;
+  color: var(--accent); min-width: 28px; text-align: center;
+}
+
+/* ===== GAME SCREEN ===== */
+.stats-bar { display: flex; gap: 8px; margin-bottom: 18px; }
+.stat {
+  flex: 1; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px; text-align: center;
+}
+.stat-val { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--accent); }
+.stat-val.g { color: var(--green); }
+.stat-val.r { color: var(--red); }
+.stat-val.a { color: var(--amber); }
+.stat-label { font-size: 10px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.7px; }
+
+.progress-wrap { margin-bottom: 18px; }
+.progress-bar { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+.progress-label { font-size: 11px; color: var(--text3); margin-top: 5px; font-family: 'JetBrains Mono', monospace; }
+
+.question-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.question-card::after {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(74,158,255,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.q-badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; font-family: 'JetBrains Mono', monospace;
+  padding: 3px 9px; border-radius: 4px; margin-bottom: 14px;
+}
+.q-badge.callsign { background: rgba(74,158,255,0.12); color: var(--accent); }
+.q-badge.airport  { background: rgba(245,158,11,0.12); color: var(--amber); }
+.q-badge.trivia   { background: rgba(168,85,247,0.12); color: var(--purple); }
+
+.q-timer-ring { position: absolute; top: 20px; left: 20px; }
+.q-main {
+  font-size: 30px; font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 2px; color: var(--text); margin-bottom: 8px;
+}
+.q-main.trivia-q { font-size: 18px; font-family: 'Heebo', sans-serif; letter-spacing: 0; font-weight: 700; line-height: 1.4; }
+.q-hint { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+.answers { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.answer-btn {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px; color: var(--text);
+  font-family: 'Heebo', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer; text-align: right;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: all 0.12s;
+}
+.answer-btn:hover:not(:disabled) { border-color: var(--border2); background: var(--bg4); }
+.answer-btn:disabled { cursor: default; }
+.answer-btn.correct { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.4); color: #86efac; }
+.answer-btn.wrong   { background: rgba(239,68,68,0.1);  border-color: rgba(239,68,68,0.3);  color: rgba(239,68,68,0.75); }
+.answer-letter {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  color: var(--text3); background: var(--bg2); border: 1px solid var(--border);
+  width: 24px; height: 24px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  margin-right: 10px;
+}
+.answer-btn.correct .answer-letter { background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.4); color: #86efac; }
+.answer-btn.wrong   .answer-letter { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3);  color: rgba(239,68,68,0.8); }
+
+.feedback {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 12px;
+  font-size: 13px; line-height: 1.6; color: var(--text2); display: none;
+}
+.feedback.show { display: block; }
+.feedback.correct-fb { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.07); }
+.feedback.wrong-fb   { border-color: rgba(239,68,68,0.25); background: rgba(239,68,68,0.06); }
+.feedback strong { color: var(--text); }
+
+.next-btn {
+  width: 100%; background: var(--accent2); border: none; border-radius: 10px;
+  padding: 14px; color: white; font-family: 'Heebo', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  display: none; align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.15s;
+}
+.next-btn:hover { background: #1d4ed8; }
+.next-btn.show { display: flex; }
+
+/* timer bar */
+.timer-bar-wrap { height: 3px; background: var(--bg3); border-radius: 2px; margin-bottom: 12px; overflow: hidden; }
+.timer-bar-fill {
+  height: 100%; background: var(--green); border-radius: 2px;
+  transition: width 0.1s linear, background 0.3s;
+}
+
+/* ===== RESULTS ===== */
+.results { text-align: center; padding: 16px 0; }
+.results-trophy { font-size: 56px; margin-bottom: 8px; }
+.results-score {
+  font-family: 'JetBrains Mono', monospace; font-size: 60px; font-weight: 700;
+  color: var(--accent); line-height: 1; margin: 8px 0;
+}
+.results-tagline { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.results-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+.results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 24px; }
+.rg-cell { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 10px; }
+.rg-val { font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.rg-val.g { color: var(--green); } .rg-val.r { color: var(--red); } .rg-val.a { color: var(--accent); }
+.rg-lbl { font-size: 10px; color: var(--text3); margin-top: 3px; text-transform: uppercase; }
+.results-btns { display: flex; gap: 10px; justify-content: center; }
+.btn-primary {
+  background: var(--accent2); border: none; border-radius: 10px;
+  padding: 13px 28px; color: white; font-family: 'Heebo', sans-serif;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+}
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+  padding: 13px 28px; color: var(--text2); font-family: 'Heebo', sans-serif;
+  font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+}
+.btn-secondary:hover { border-color: var(--border2); color: var(--text); }
+
+/* ===== ADMIN PANEL ===== */
+.admin-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.admin-overlay.show { display: flex; }
+
+.admin-panel {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 16px; width: 100%; max-width: 720px;
+  max-height: 90vh; display: flex; flex-direction: column;
+  box-shadow: var(--shadow);
+}
+.admin-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.admin-header h2 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.admin-close {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  width: 32px; height: 32px; cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center; color: var(--text2);
+}
+.admin-close:hover { color: var(--text); border-color: var(--border2); }
+
+/* login */
+.admin-login {
+  padding: 40px 24px; text-align: center;
+}
+.admin-login h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.admin-login p { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+.admin-login input {
+  width: 100%; max-width: 280px; display: block; margin: 0 auto 14px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; color: var(--text); font-family: 'Heebo', sans-serif;
+  font-size: 14px; text-align: center; letter-spacing: 3px;
+}
+.admin-login input:focus { outline: none; border-color: var(--border2); }
+.admin-login .err { font-size: 12px; color: var(--red); margin-bottom: 10px; min-height: 18px; }
+
+/* admin body */
+.admin-body { overflow-y: auto; flex: 1; }
+
+.admin-tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  padding: 0 22px; flex-shrink: 0;
+}
+.admin-tab {
+  padding: 12px 16px; font-size: 13px; font-weight: 500;
+  color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all 0.15s; white-space: nowrap;
+}
+.admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.admin-tab:hover:not(.active) { color: var(--text2); }
+
+.admin-section { padding: 20px 22px; display: none; }
+.admin-section.active { display: block; }
+
+.admin-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text2); }
+
+/* form */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-row.single { grid-template-columns: 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.7px; }
+.form-group input, .form-group textarea, .form-group select {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 12px; color: var(--text); font-family: 'Heebo', sans-serif;
+  font-size: 13px; transition: border-color 0.15s;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+  outline: none; border-color: var(--border2);
+}
+.form-group textarea { resize: vertical; min-height: 70px; }
+.form-group select option { background: #1a2440; }
+
+.form-add-btn {
+  width: 100%; background: var(--accent2); border: none; border-radius: 8px;
+  padding: 10px; color: white; font-family: 'Heebo', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 6px;
+  transition: background 0.15s;
+}
+.form-add-btn:hover { background: #1d4ed8; }
+
+/* item list */
+.item-list { margin-top: 20px; }
+.item-list-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.item-list-title { font-size: 13px; font-weight: 700; color: var(--text2); }
+.item-count {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text3);
+}
+.item-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; margin-bottom: 6px;
+}
+.item-row-code {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+  color: var(--accent); min-width: 52px;
+}
+.item-row-name { font-size: 13px; flex: 1; color: var(--text); }
+.item-row-sub { font-size: 11px; color: var(--text3); }
+.item-delete {
+  background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 6px; padding: 4px 10px; color: rgba(239,68,68,0.7);
+  font-size: 11px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  font-family: 'Heebo', sans-serif;
+}
+.item-delete:hover { background: rgba(239,68,68,0.18); color: var(--red); }
+
+/* settings */
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 13px; font-weight: 500; }
+.setting-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* toggle */
+.toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--bg4);
+  border: 1px solid var(--border2); border-radius: 11px; cursor: pointer; transition: 0.2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute;
+  width: 16px; height: 16px; top: 2px; right: 2px;
+  background: var(--text3); border-radius: 50%; transition: 0.2s;
+}
+.toggle input:checked + .toggle-slider { background: var(--accent2); border-color: var(--accent); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(-18px); background: white; }
+
+/* export/import */
+.export-box {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--text2); max-height: 120px; overflow-y: auto; margin-top: 8px;
+  word-break: break-all;
+}
+.btn-row { display: flex; gap: 8px; margin-top: 8px; }
+.btn-sm {
+  background: var(--bg4); border: 1px solid var(--border2); border-radius: 7px;
+  padding: 7px 14px; color: var(--text2); font-family: 'Heebo', sans-serif;
+  font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+}
+.btn-sm:hover { color: var(--text); border-color: var(--border2); }
+.btn-sm.danger { border-color: rgba(239,68,68,0.3); color: rgba(239,68,68,0.7); }
+.btn-sm.danger:hover { background: rgba(239,68,68,0.1); color: var(--red); }
+
+/* ===== TOAST ===== */
+@keyframes toastIn { 0%{opacity:0;transform:translateX(-50%) translateY(-12px)} 100%{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes toastOut { 0%{opacity:1} 100%{opacity:0} }
+.toast {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+  background: rgba(245,158,11,0.92); color: white;
+  font-size: 13px; font-weight: 700; padding: 9px 22px; border-radius: 20px;
+  pointer-events: none; z-index: 300; white-space: nowrap;
+  animation: toastIn 0.2s ease, toastOut 0.4s ease 1.2s forwards;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pop { 0%{transform:scale(0.96);opacity:0.5} 100%{transform:scale(1);opacity:1} }
+.pop { animation: pop 0.18s ease-out; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { animation: fadeIn 0.25s ease; }
+
+/* Confetti */
+.confetti-piece {
+  position: fixed; width: 8px; height: 8px; border-radius: 2px;
+  pointer-events: none; z-index: 400;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">✈️ ATC Quiz</div>
+      <div class="topbar-sub">מחלקת הדרכה בקרה צפון</div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="מצב יום/לילה">🌙</button>
+      <button class="icon-btn" onclick="openAdmin()" title="ממשק ניהול">⚙️</button>
+    </div>
+  </div>
+
+  <div class="main">
+  <div class="container">
+
+    <!-- ===== HOME SCREEN ===== -->
+    <div class="screen active" id="screen-home">
+      <div class="home-hero fade-in">
+        <div class="home-icon">🎮</div>
+        <h1>בחר מצב משחק</h1>
+        <p>בחן את הידע שלך בזיהוי callsigns, שדות תעופה ושאלות טריוויה</p>
+      </div>
+
+      <div class="mode-grid">
+        <div class="mode-card" onclick="startGame('callsign')">
+          <div class="mode-card-icon">📡</div>
+          <div class="mode-card-title">Callsign</div>
+          <div class="mode-card-desc">זיהוי חברות תעופה לפי קוד ICAO</div>
+          <div class="mode-card-count" id="count-callsign">40 שאלות</div>
+        </div>
+        <div class="mode-card" onclick="startGame('icao')">
+          <div class="mode-card-icon">🏁</div>
+          <div class="mode-card-title">שדות תעופה</div>
+          <div class="mode-card-desc">זיהוי שדות לפי קוד ICAO</div>
+          <div class="mode-card-count" id="count-icao">35 שאלות</div>
+        </div>
+        <div class="mode-card full" onclick="startGame('mixed')">
+          <div class="mode-card-icon">🔀</div>
+          <div class="mode-card-title">מעורב — הכל ביחד</div>
+          <div class="mode-card-desc">שילוב של callsigns, שדות וטריוויה באקראי</div>
+        </div>
+      </div>
+
+      <div class="q-count-row">
+        <label>מספר שאלות:</label>
+        <input type="range" min="5" max="30" value="15" step="5" id="q-count-slider" oninput="document.getElementById('q-count-disp').textContent=this.value">
+        <div class="q-count-val" id="q-count-disp">15</div>
+      </div>
+    </div>
+
+    <!-- ===== GAME SCREEN ===== -->
+    <div class="screen" id="screen-game">
+      <div class="stats-bar">
+        <div class="stat"><div class="stat-val" id="stat-score">0</div><div class="stat-label">ניקוד</div></div>
+        <div class="stat"><div class="stat-val g" id="stat-correct">0</div><div class="stat-label">נכון</div></div>
+        <div class="stat"><div class="stat-val r" id="stat-wrong">0</div><div class="stat-label">טעות</div></div>
+        <div class="stat"><div class="stat-val a" id="stat-streak">0</div><div class="stat-label">רצף 🔥</div></div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+        <div class="progress-label" id="progress-label">שאלה 1 / 15</div>
+      </div>
+
+      <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-bar" style="width:100%"></div></div>
+
+      <div class="question-card pop" id="question-card">
+        <div class="q-badge callsign" id="q-badge">CALLSIGN</div>
+        <div class="q-main" id="q-main">ELY</div>
+        <div class="q-hint" id="q-hint">לאיזו חברת תעופה שייך ה-Callsign?</div>
+      </div>
+
+      <div class="answers" id="answers-container"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">שאלה הבאה ←</button>
+    </div>
+
+    <!-- ===== RESULTS SCREEN ===== -->
+    <div class="screen" id="screen-results">
+      <div class="results fade-in">
+        <div class="results-trophy" id="res-trophy">🏆</div>
+        <div class="results-score" id="res-score">0</div>
+        <div class="results-tagline" id="res-tagline">כל הכבוד!</div>
+        <div class="results-sub" id="res-sub">סיימת את המשחק</div>
+        <div class="results-grid">
+          <div class="rg-cell"><div class="rg-val g" id="rb-correct">0</div><div class="rg-lbl">נכון</div></div>
+          <div class="rg-cell"><div class="rg-val r" id="rb-wrong">0</div><div class="rg-lbl">טעות</div></div>
+          <div class="rg-cell"><div class="rg-val a" id="rb-pct">0%</div><div class="rg-lbl">דיוק</div></div>
+        </div>
+        <div class="results-btns">
+          <button class="btn-primary" onclick="restartGame()">🔄 שחק שוב</button>
+          <button class="btn-secondary" onclick="goHome()">🏠 בית</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN OVERLAY ===== -->
+<div class="admin-overlay" id="admin-overlay">
+  <div class="admin-panel">
+    <div class="admin-header">
+      <h2>⚙️ ממשק ניהול</h2>
+      <button class="admin-close" onclick="closeAdmin()">✕</button>
+    </div>
+
+    <!-- Login -->
+    <div id="admin-login-wrap" class="admin-login">
+      <h3>🔐 כניסה לממשק ניהול</h3>
+      <p>הזן סיסמה כדי לנהל את בנק השאלות</p>
+      <input type="password" id="admin-pw-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()">
+      <div class="err" id="admin-err"></div>
+      <button class="form-add-btn" style="max-width:200px;margin:0 auto" onclick="checkPassword()">כניסה</button>
+    </div>
+
+    <!-- Panel content -->
+    <div id="admin-content" style="display:none; flex-direction:column; flex:1; overflow:hidden; display:none;">
+      <div class="admin-tabs">
+        <div class="admin-tab active" onclick="adminTab('callsign')">📡 Callsigns</div>
+        <div class="admin-tab" onclick="adminTab('icao')">🏁 שדות</div>
+
+        <div class="admin-tab" onclick="adminTab('settings')">🔧 הגדרות</div>
+        <div class="admin-tab" onclick="adminTab('export')">📦 ייצוא</div>
+      </div>
+      <div class="admin-body">
+
+        <!-- CALLSIGN tab -->
+        <div class="admin-section active" id="atab-callsign">
+          <h3>הוסף Callsign חדש</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>קוד ICAO (3 אותיות)</label>
+              <input type="text" id="cs-code" placeholder="ELY" maxlength="4" style="font-family:'JetBrains Mono',monospace;text-transform:uppercase">
+            </div>
+            <div class="form-group">
+              <label>שם חברה</label>
+              <input type="text" id="cs-name" placeholder="El Al Israel Airlines">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>מדינה</label>
+              <input type="text" id="cs-country" placeholder="ישראל">
+            </div>
+            <div class="form-group">
+              <label>רמז / הסבר</label>
+              <input type="text" id="cs-hint" placeholder="חברת הדגל של ישראל">
+            </div>
+          </div>
+          <button class="form-add-btn" onclick="addCallsign()">+ הוסף לבנק</button>
+
+          <div class="item-list">
+            <div class="item-list-header">
+              <div class="item-list-title">כל ה-Callsigns</div>
+              <div class="item-count" id="cs-count"></div>
+            </div>
+            <div id="cs-list"></div>
+          </div>
+        </div>
+
+        <!-- ICAO tab -->
+        <div class="admin-section" id="atab-icao">
+          <h3>הוסף שדה תעופה חדש</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>קוד ICAO (4 אותיות)</label>
+              <input type="text" id="ap-code" placeholder="LLBG" maxlength="4" style="font-family:'JetBrains Mono',monospace;text-transform:uppercase">
+            </div>
+            <div class="form-group">
+              <label>שם שדה</label>
+              <input type="text" id="ap-name" placeholder="Ben Gurion International">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>עיר</label>
+              <input type="text" id="ap-city" placeholder="תל אביב">
+            </div>
+            <div class="form-group">
+              <label>מדינה</label>
+              <input type="text" id="ap-country" placeholder="ישראל">
+            </div>
+          </div>
+          <button class="form-add-btn" onclick="addAirport()">+ הוסף לבנק</button>
+
+          <div class="item-list">
+            <div class="item-list-header">
+              <div class="item-list-title">כל השדות</div>
+              <div class="item-count" id="ap-count"></div>
+            </div>
+            <div id="ap-list"></div>
+          </div>
+        </div>
+
+        <!-- TRIVIA tab -->
+        <div class="admin-section" id="atab-trivia">
+          <h3>הוסף שאלת טריוויה</h3>
+          <div class="form-row single">
+            <div class="form-group">
+              <label>שאלה</label>
+              <textarea id="tr-question" placeholder="מה הפרדה אנכית מינימלית מתחת ל-FL290?"></textarea>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>תשובה נכונה ✅</label>
+              <input type="text" id="tr-correct" placeholder="1,000 ft">
+            </div>
+            <div class="form-group">
+              <label>תשובה שגויה 1</label>
+              <input type="text" id="tr-w1" placeholder="500 ft">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>תשובה שגויה 2</label>
+              <input type="text" id="tr-w2" placeholder="2,000 ft">
+            </div>
+            <div class="form-group">
+              <label>תשובה שגויה 3</label>
+              <input type="text" id="tr-w3" placeholder="1,500 ft">
+            </div>
+          </div>
+          <div class="form-row single">
+            <div class="form-group">
+              <label>הסבר (יוצג אחרי תשובה)</label>
+              <textarea id="tr-explain" placeholder="לפי ICAO Doc 4444, הפרדה אנכית סטנדרטית מתחת FL290 היא 1,000 ft..."></textarea>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>קטגוריה</label>
+              <select id="tr-cat">
+                <option value="separation">הפרדה</option>
+                <option value="phraseology">Phraseology</option>
+                <option value="emergency">חירום</option>
+                <option value="general">כללי</option>
+                <option value="weather">מזג אוויר</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>רמת קושי</label>
+              <select id="tr-diff">
+                <option value="easy">קלה</option>
+                <option value="medium">בינונית</option>
+                <option value="hard">קשה</option>
+              </select>
+            </div>
+          </div>
+          <button class="form-add-btn" onclick="addTrivia()">+ הוסף לבנק</button>
+
+          <div class="item-list">
+            <div class="item-list-header">
+              <div class="item-list-title">שאלות טריוויה</div>
+              <div class="item-count" id="tr-count"></div>
+            </div>
+            <div id="tr-list"></div>
+          </div>
+        </div>
+
+        <!-- SETTINGS tab -->
+        <div class="admin-section" id="atab-settings">
+          <h3>הגדרות משחק</h3>
+          <div class="setting-row">
+            <div><div class="setting-label">טיימר לכל שאלה</div><div class="setting-sub">15 שניות לתשובה, אחרי כן עובר אוטומטית</div></div>
+            <label class="toggle"><input type="checkbox" id="setting-timer" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">הצג הסבר אחרי כל שאלה</div><div class="setting-sub">מראה טיפ או הפניה לנוהל</div></div>
+            <label class="toggle"><input type="checkbox" id="setting-explain" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">בונוס נקודות לרצף</div><div class="setting-sub">+50 נקודות מרצף של 3+</div></div>
+            <label class="toggle"><input type="checkbox" id="setting-streak" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">קונפטי בסוף מצוין</div><div class="setting-sub">אנימציה חגיגית בדיוק מעל 90%</div></div>
+            <label class="toggle"><input type="checkbox" id="setting-confetti" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+
+        <!-- EXPORT tab -->
+        <div class="admin-section" id="atab-export">
+          <h3>ייצוא ויבוא נתונים</h3>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">שמור את כל בנק השאלות כ-JSON כדי לגבות או לשתף.</p>
+          <button class="btn-sm" onclick="exportData()">📋 העתק JSON</button>
+          <div class="export-box" id="export-box" style="margin-top:10px;display:none"></div>
+
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+            <h3 style="margin-bottom:10px">יבוא JSON</h3>
+            <div class="form-group">
+              <textarea id="import-box" placeholder='הדבק JSON כאן...' style="min-height:90px;font-family:JetBrains Mono,monospace;font-size:11px"></textarea>
+            </div>
+            <div class="btn-row">
+              <button class="btn-sm" onclick="importData()">📥 יבא נתונים</button>
+              <button class="btn-sm danger" onclick="resetAll()">🗑️ אפס הכל</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* =========================================
+   DATA STORE
+   ========================================= */
+const DEFAULT_CALLSIGNS = [
+  { code:'ELY', name:'El Al Israel Airlines', country:'ישראל', hint:'חברת הדגל של ישראל' },
+  { code:'ISR', name:'Arkia Israeli Airlines', country:'ישראל', hint:'חברה ישראלית פנים-ארצית' },
+  { code:'IZY', name:'Israir', country:'ישראל', hint:'חברה ישראלית לטיסות שכר' },
+  { code:'BAW', name:'British Airways', country:'בריטניה', hint:'חברת הדגל הבריטית' },
+  { code:'DLH', name:'Lufthansa', country:'גרמניה', hint:'חברת הדגל הגרמנית' },
+  { code:'AFR', name:'Air France', country:'צרפת', hint:'חברת הדגל הצרפתית' },
+  { code:'KLM', name:'KLM Royal Dutch Airlines', country:'הולנד', hint:'חברת הדגל ההולנדית' },
+  { code:'UAE', name:'Emirates', country:'איחוד האמירויות', hint:'חברה מדובאי' },
+  { code:'ETD', name:'Etihad Airways', country:'איחוד האמירויות', hint:'חברת הדגל של אבו דאבי' },
+  { code:'QTR', name:'Qatar Airways', country:'קטאר', hint:'חברת הדגל הקטארית' },
+  { code:'TKY', name:'Turkish Airlines', country:'טורקיה', hint:'חברת הדגל הטורקית' },
+  { code:'SVA', name:'Saudia', country:'ערב הסעודית', hint:'חברת הדגל הסעודית' },
+  { code:'RYR', name:'Ryanair', country:'אירלנד', hint:'חברת תקציב אירית' },
+  { code:'EZY', name:'easyJet', country:'בריטניה', hint:'חברת תקציב בריטית' },
+  { code:'WZZ', name:'Wizz Air', country:'הונגריה', hint:'חברת תקציב מרכז-אירופאית' },
+  { code:'VLG', name:'Vueling', country:'ספרד', hint:'חברת תקציב ספרדית' },
+  { code:'IBE', name:'Iberia', country:'ספרד', hint:'חברת הדגל הספרדית' },
+  { code:'AZA', name:'ITA Airways', country:'איטליה', hint:'חברת הדגל האיטלקית' },
+  { code:'SWR', name:'Swiss International Air Lines', country:'שווייץ', hint:'חברת הדגל השווייצרית' },
+  { code:'AUA', name:'Austrian Airlines', country:'אוסטריה', hint:'חברת הדגל האוסטרית' },
+  { code:'UAL', name:'United Airlines', country:'ארה"ב', hint:'חברה אמריקאית גדולה' },
+  { code:'AAL', name:'American Airlines', country:'ארה"ב', hint:'חברה אמריקאית גדולה' },
+  { code:'DAL', name:'Delta Air Lines', country:'ארה"ב', hint:'חברה אמריקאית גדולה' },
+  { code:'JAL', name:'Japan Airlines', country:'יפן', hint:'חברת הדגל היפנית' },
+  { code:'ANA', name:'All Nippon Airways', country:'יפן', hint:'חברה יפנית גדולה' },
+  { code:'SIA', name:'Singapore Airlines', country:'סינגפור', hint:'חברת הדגל הסינגפורית' },
+  { code:'CCA', name:'Air China', country:'סין', hint:'חברת הדגל הסינית' },
+  { code:'CSN', name:'China Southern Airlines', country:'סין', hint:'חברה סינית גדולה' },
+  { code:'FDB', name:'flydubai', country:'איחוד האמירויות', hint:'חברת תקציב מדובאי' },
+  { code:'RAM', name:'Royal Air Maroc', country:'מרוקו', hint:'חברת הדגל המרוקאית' },
+  { code:'MSR', name:'EgyptAir', country:'מצרים', hint:'חברת הדגל המצרית' },
+  { code:'AEE', name:'Aegean Airlines', country:'יוון', hint:'חברת הדגל היוונית' },
+  { code:'SAS', name:'Scandinavian Airlines', country:'סקנדינביה', hint:'חברת הדגל הסקנדינבית' },
+  { code:'FIN', name:'Finnair', country:'פינלנד', hint:'חברת הדגל הפינית' },
+  { code:'BEL', name:'Brussels Airlines', country:'בלגיה', hint:'חברת הדגל הבלגית' },
+  { code:'RJA', name:'Royal Jordanian', country:'ירדן', hint:'חברת הדגל הירדנית' },
+  { code:'GFA', name:'Gulf Air', country:'בחריין', hint:'חברת הדגל הבחריינית' },
+  { code:'THY', name:'Turkish Airlines (Callsign)', country:'טורקיה', hint:'ה-Callsign הדיבורי של Turkish' },
+  { code:'CAL', name:'China Airlines', country:'טייוואן', hint:'חברת הדגל הטייוואנית' },
+  { code:'KAL', name:'Korean Air', country:'קוריאה', hint:'חברת הדגל הקוריאנית' },
+];
+
+const DEFAULT_AIRPORTS = [
+  { code:'LLBG', name:'Ben Gurion International', city:'תל אביב', country:'ישראל' },
+  { code:'LLOV', name:'Ovda Airport', city:'נגב', country:'ישראל' },
+  { code:'LLER', name:'Ramon Airport', city:'אילת', country:'ישראל' },
+  { code:'LLHZ', name:'Herzliya Airport', city:'הרצליה', country:'ישראל' },
+  { code:'EGLL', name:'London Heathrow', city:'לונדון', country:'בריטניה' },
+  { code:'EGKK', name:'London Gatwick', city:'לונדון', country:'בריטניה' },
+  { code:'LFPG', name:'Paris Charles de Gaulle', city:'פריז', country:'צרפת' },
+  { code:'EDDF', name:'Frankfurt Airport', city:'פרנקפורט', country:'גרמניה' },
+  { code:'EHAM', name:'Amsterdam Schiphol', city:'אמסטרדם', country:'הולנד' },
+  { code:'OMDB', name:'Dubai International', city:'דובאי', country:'איחוד האמירויות' },
+  { code:'OTBD', name:'Doha Hamad International', city:'דוחה', country:'קטאר' },
+  { code:'OOMS', name:'Muscat International', city:'מסקט', country:'עומאן' },
+  { code:'LTFM', name:'Istanbul Airport (New)', city:'איסטנבול', country:'טורקיה' },
+  { code:'LTBA', name:'Istanbul Atatürk', city:'איסטנבול', country:'טורקיה' },
+  { code:'LEMD', name:'Madrid Barajas', city:'מדריד', country:'ספרד' },
+  { code:'LEBL', name:'Barcelona El Prat', city:'ברצלונה', country:'ספרד' },
+  { code:'LIRF', name:'Rome Fiumicino', city:'רומא', country:'איטליה' },
+  { code:'LSZH', name:'Zurich Airport', city:'ציריך', country:'שווייץ' },
+  { code:'LOWW', name:'Vienna International', city:'וינה', country:'אוסטריה' },
+  { code:'KJFK', name:'New York JFK', city:'ניו יורק', country:'ארה"ב' },
+  { code:'KLAX', name:'Los Angeles International', city:'לוס אנג\'לס', country:'ארה"ב' },
+  { code:'ZBAA', name:'Beijing Capital International', city:'בייג\'ינג', country:'סין' },
+  { code:'WSSS', name:'Singapore Changi', city:'סינגפור', country:'סינגפור' },
+  { code:'RJTT', name:'Tokyo Haneda', city:'טוקיו', country:'יפן' },
+  { code:'YSSY', name:'Sydney Kingsford Smith', city:'סידני', country:'אוסטרליה' },
+  { code:'HECA', name:'Cairo International', city:'קהיר', country:'מצרים' },
+  { code:'OJAI', name:'Queen Alia International', city:'עמאן', country:'ירדן' },
+  { code:'EKCH', name:'Copenhagen Airport', city:'קופנהגן', country:'דנמרק' },
+  { code:'EFHK', name:'Helsinki Airport', city:'הלסינקי', country:'פינלנד' },
+  { code:'EBBR', name:'Brussels Airport', city:'בריסל', country:'בלגיה' },
+  { code:'LCLK', name:'Larnaca International', city:'לרנקה', country:'קפריסין' },
+  { code:'LGAV', name:'Athens International', city:'אתונה', country:'יוון' },
+  { code:'FACT', name:'Cape Town International', city:'קייפטאון', country:'דרום אפריקה' },
+  { code:'OLBA', name:'Beirut Rafic Hariri International', city:'ביירות', country:'לבנון' },
+  { code:'LFBO', name:'Toulouse Blagnac', city:'טולוז', country:'צרפת' },
+];
+
+const DEFAULT_TRIVIA = [
+  { question:'מה הפרדה אנכית מינימלית מתחת ל-FL290?', correct:'1,000 ft', wrong:['500 ft','2,000 ft','1,500 ft'], explain:'לפי ICAO Doc 4444, VSM מתחת FL290 = 1,000 ft (300 מ\'). מעל FL290 = 2,000 ft, אלא אם RVSM.', category:'separation', difficulty:'easy' },
+  { question:'מהו קוד SSR לתקלת קשר?', correct:'7600', wrong:['7700','7500','1200'], explain:'7600 = Comms failure. 7700 = Emergency. 7500 = Unlawful interference.', category:'emergency', difficulty:'easy' },
+  { question:'מהו קוד SSR למצב חירום?', correct:'7700', wrong:['7600','7500','2000'], explain:'7700 = General emergency. חייב לשדר בכל מצב חירום לפי ICAO.', category:'emergency', difficulty:'easy' },
+  { question:'מהו קוד SSR להתפסות בלתי-חוקית (Hijacking)?', correct:'7500', wrong:['7700','7600','0000'], explain:'7500 = Unlawful interference / Hijacking. ה-ATC מנסה לאמת על ידי הגדרת הדקודר.', category:'emergency', difficulty:'easy' },
+  { question:'מה ה-Wake Turbulence separation בין HEAVY ל-HEAVY?', correct:'4.0 NM', wrong:['3.0 NM','5.0 NM','6.0 NM'], explain:'לפי ICAO Doc 4444, HEAVY אחרי HEAVY = 4 NM. HEAVY אחרי MEDIUM = 5 NM.', category:'separation', difficulty:'medium' },
+  { question:'מה אומר פקח כשמזהה מטוס ב-Radar?', correct:'RADAR CONTACT', wrong:['IDENTIFIED','CONTACT ESTABLISHED','TRAFFIC IN SIGHT'], explain:'Phraseology תקנית: "[ACID] RADAR CONTACT [position]". לא IDENTIFIED — זה מונח אחר.', category:'phraseology', difficulty:'easy' },
+  { question:'עד כמה נמוך ניתן להפריד בין שני מטוסים על ידי RVSM?', correct:'1,000 ft בין FL290 ל-FL410', wrong:['2,000 ft בכל גובה','500 ft מתחת FL290','1,000 ft מעל FL410'], explain:'RVSM = Reduced Vertical Separation Minima. מאפשר 1,000 ft בין FL290–FL410 במקום 2,000 ft.', category:'separation', difficulty:'medium' },
+  { question:'מה המשמעות של "WILCO"?', correct:'Will comply — מבין ואציית', wrong:['Received — קיבלתי','Negative — שלילי','Roger — הבנתי'], explain:'WILCO = "Will comply". שונה מ-ROGER שמשמעותו רק "קיבלתי את המסר".', category:'phraseology', difficulty:'easy' },
+  { question:'מתי חייב פקח לתת EFC (Expect Further Clearance)?', correct:'כשצפוי עיכוב בטיסה', wrong:['בכל העברת שליטה','בכל כניסה למחזיק','רק במצב חירום'], explain:'EFC נדרש כשמטוס ממתין ויש עיכוב צפוי. צריך לעדכן אם EFC משתנה ב-3 דקות או יותר.', category:'general', difficulty:'medium' },
+  { question:'מה הפעולה הנכונה כשפקח מקבל TCAS RA מטייס?', correct:'אל תתנגד להוראות ה-RA', wrong:['הנחה לטייס להתעלם ה-RA','הגבר separation מיידית','דרוש מה-Pilot לדווח על כל maneuver'], explain:'כשטייס מדווח TCAS RA — אל תוציא הוראות שמתנגדות ל-RA. המתן עד שהטייס מדווח "clear of conflict".', category:'emergency', difficulty:'medium' },
+  { question:'מה גובה ה-VSM בין FL290 ל-FL410 ב-RVSM airspace?', correct:'1,000 ft', wrong:['2,000 ft','500 ft','1,500 ft'], explain:'RVSM מאפשר VSM של 1,000 ft בין FL290 ל-FL410, במקום 2,000 ft הרגיל.', category:'separation', difficulty:'medium' },
+  { question:'מה הביטוי התקני להוצאת מטוס ממחזיק?', correct:'RESUME OWN NAVIGATION', wrong:['PROCEED ON COURSE','CLEARED DIRECT','EXIT HOLD'], explain:'לאחר סיום המחזיק: "[ACID] RESUME OWN NAVIGATION" + פרטי הנתיב אם רלוונטי.', category:'phraseology', difficulty:'hard' },
+  { question:'מה ה-Wake Turbulence category של מטוס MEDIUM אחרי HEAVY?', correct:'5.0 NM', wrong:['4.0 NM','3.0 NM','6.0 NM'], explain:'HEAVY → MEDIUM = 5 NM. שים לב: גם B757 נחשב קטגוריה עצמאית בחלק מהמינימות.', category:'separation', difficulty:'hard' },
+  { question:'מה ה-Read-back requirements לפי ICAO?', correct:'Clearances, runway instructions, SSR codes, levels, headings, speeds', wrong:['רק Runway clearances','כל הודעה מה-ATC','רק הוראות חירום'], explain:'לפי ICAO Doc 4444 Ch.12, read-back נדרש לכל הוראות: נתיב, מסלול, SSR, גובה, כיוון, מהירות.', category:'phraseology', difficulty:'hard' },
+  { question:'מהו STCA?', correct:'Short-Term Conflict Alert — אזהרת בטיחות', wrong:['System Traffic Control Alert','Standard Terminal Clearance Area','Sector Transfer Control Authorization'], explain:'STCA = Short-Term Conflict Alert. כלי safety net — לא אמצעי הפרדה. כשמופעל: הערך מיידית.', category:'general', difficulty:'easy' },
+  { question:'כמה זמן לפני הגבול צריך להעביר שליטה?', correct:'לפני שהמטוס מגיע לגבול', wrong:['בדיוק על הגבול','5 דקות אחרי הגבול','רק לאחר קשר רדיו'], explain:'Transfer of Control צריך להתבצע לפני שהמטוס מגיע לגבול הסקטור, לפי ICAO Doc 4444 Ch.10.', category:'general', difficulty:'medium' },
+  { question:'מה הקוד ICAO לנמל התעופה בן-גוריון?', correct:'LLBG', wrong:['LLTV','LLSD','LLBS'], explain:'LLBG = Ben Gurion International. LL = Israel FIR prefix. BG = Ben Gurion.', category:'general', difficulty:'easy' },
+  { question:'מהו ה-Callsign ICAO של El Al?', correct:'ELY', wrong:['ELI','ELA','IAI'], explain:'ELY הוא ה-3-letter designator של El Al לפי ICAO. ה-Callsign המדובר הוא "EL AL".', category:'general', difficulty:'easy' },
+  { question:'מה ה-Wake Turbulence category של Airbus A380?', correct:'SUPER (J)', wrong:['HEAVY','MEDIUM','JUMBO'], explain:'A380 הוא קטגוריית SUPER (J) — ייחודי. יש מינימות wake turbulence ספציפיות לו.', category:'separation', difficulty:'medium' },
+  { question:'מה עושה פקח כשמזהה ירידת גובה לא מאושרת בגישה?', correct:'מוציא Safety Alert ומורה לטפס', wrong:['ממתין לדיווח הטייס','מעביר לסקטור אחר','מדפיס MSAW report'], explain:'MSAW (Min Safe Altitude Warning) — בהפעלה: בדוק גובה, אם נדרש — הוצא Safety Alert ומור לטפס מיידית.', category:'emergency', difficulty:'hard' },
+];
+
+// Load from localStorage or use defaults
+let CALLSIGNS = JSON.parse(localStorage.getItem('atc_callsigns') || 'null') || [...DEFAULT_CALLSIGNS];
+let AIRPORTS  = JSON.parse(localStorage.getItem('atc_airports')  || 'null') || [...DEFAULT_AIRPORTS];
+function saveData() {
+  localStorage.setItem('atc_callsigns', JSON.stringify(CALLSIGNS));
+  localStorage.setItem('atc_airports',  JSON.stringify(AIRPORTS));
+  updateHomeCounts();
+}
+
+/* =========================================
+   THEME
+   ========================================= */
+let isDayMode = localStorage.getItem('atc_theme') === 'day';
+function applyTheme() {
+  document.body.classList.toggle('day-mode', isDayMode);
+  document.getElementById('theme-btn').textContent = isDayMode ? '🌙' : '☀️';
+}
+function toggleTheme() {
+  isDayMode = !isDayMode;
+  localStorage.setItem('atc_theme', isDayMode ? 'day' : 'night');
+  applyTheme();
+}
+applyTheme();
+
+/* =========================================
+   SCREEN MANAGEMENT
+   ========================================= */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function goHome() { showScreen('home'); updateHomeCounts(); }
+
+function updateHomeCounts() {
+  document.getElementById('count-callsign').textContent = CALLSIGNS.length + ' שאלות';
+  document.getElementById('count-icao').textContent = AIRPORTS.length + ' שאלות';
+}
+updateHomeCounts();
+
+/* =========================================
+   GAME ENGINE
+   ========================================= */
+let gameMode = 'callsign';
+let totalQ = 15;
+let qNum = 0;
+let score = 0, correct = 0, wrong = 0, streak = 0;
+let answered = false;
+let currentQ = null;
+let timerInterval = null;
+let timerLeft = 15;
+
+function startGame(mode) {
+  gameMode = mode;
+  totalQ = parseInt(document.getElementById('q-count-slider').value);
+  qNum = 0; score = 0; correct = 0; wrong = 0; streak = 0;
+  updateStats();
+  showScreen('game');
+  renderQuestion();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function pickType() {
+  if (gameMode !== 'mixed') return gameMode;
+  const hasCS = CALLSIGNS.length >= 4;
+  const hasAP = AIRPORTS.length >= 4;
+  if (hasCS && hasAP) return Math.random() < 0.5 ? 'callsign' : 'icao';
+  if (hasCS) return 'callsign';
+  return 'icao';
+}
+
+function generateQ() {
+  const type = pickType();
+  const data = type === 'callsign' ? CALLSIGNS : AIRPORTS;
+  if (data.length < 4) { showToast('אין מספיק נתונים — הוסף פריטים בממשק הניהול'); return null; }
+  const idx = Math.floor(Math.random()*data.length);
+  const item = data[idx];
+  const others = shuffle(data.filter((_,i)=>i!==idx)).slice(0,3);
+  return { type, item, options: shuffle([item,...others]) };
+}
+
+function renderQuestion() {
+  if (qNum >= totalQ) { showResults(); return; }
+  const q = generateQ();
+  if (!q) return;
+  currentQ = q;
+  answered = false;
+
+  // badge
+  const badge = document.getElementById('q-badge');
+  badge.className = 'q-badge ' + q.type;
+  badge.textContent = q.type === 'callsign' ? 'CALLSIGN' : 'ICAO CODE';
+
+  // question text
+  const qMain = document.getElementById('q-main');
+  qMain.className = 'q-main';
+  qMain.textContent = q.item.code;
+  document.getElementById('q-hint').textContent =
+    q.type === 'callsign' ? 'לאיזו חברת תעופה שייך ה-Callsign?' : 'לאיזה שדה תעופה שייך קוד ה-ICAO?';
+
+  // pop animation
+  const card = document.getElementById('question-card');
+  card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+
+  // answers
+  const letters = ['א','ב','ג','ד'];
+  const container = document.getElementById('answers-container');
+  container.innerHTML = '';
+  q.options.forEach((opt,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    let label = q.type === 'callsign'
+      ? `${opt.name} (${opt.country})`
+      : `${opt.name} — ${opt.city}, ${opt.country}`;
+    btn.innerHTML = `<span>${label}</span><span class="answer-letter">${letters[i]}</span>`;
+    btn.onclick = () => handleAnswer(btn, opt, q);
+    container.appendChild(btn);
+  });
+
+  // reset
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback'; fb.textContent = '';
+  document.getElementById('next-btn').classList.remove('show');
+
+  // progress
+  qNum++;
+  document.getElementById('progress-fill').style.width = ((qNum-1)/totalQ*100)+'%';
+  document.getElementById('progress-label').textContent = `שאלה ${qNum} / ${totalQ}`;
+
+  // timer
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  const useTimer = document.getElementById('setting-timer')?.checked !== false;
+  if (!useTimer) { document.getElementById('timer-bar').style.width='100%'; return; }
+  timerLeft = 15;
+  const bar = document.getElementById('timer-bar');
+  bar.style.width = '100%';
+  bar.style.background = 'var(--green)';
+  timerInterval = setInterval(() => {
+    timerLeft -= 0.1;
+    const pct = (timerLeft/15)*100;
+    bar.style.width = Math.max(0,pct)+'%';
+    if (pct < 40) bar.style.background = 'var(--amber)';
+    if (pct < 20) bar.style.background = 'var(--red)';
+    if (timerLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) autoFail();
+    }
+  }, 100);
+}
+
+function autoFail() {
+  answered = true;
+  streak = 0;
+  wrong++;
+  updateStats();
+  document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+  // highlight correct
+  highlightCorrect();
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback wrong-fb show';
+  fb.innerHTML = '⏱️ <strong>הזמן נגמר!</strong> ' + getCorrectExplain();
+  document.getElementById('next-btn').classList.add('show');
+  if (qNum >= totalQ) document.getElementById('next-btn').textContent = 'סיים ←';
+}
+
+function highlightCorrect() {
+  const q = currentQ;
+  document.querySelectorAll('.answer-btn').forEach(btn => {
+    const label = btn.querySelector('span:first-child').textContent;
+    const correctLabel = q.type === 'callsign'
+      ? `${q.item.name} (${q.item.country})`
+      : `${q.item.name} — ${q.item.city}, ${q.item.country}`;
+    if (label === correctLabel) btn.classList.add('correct');
+  });
+}
+
+function getCorrectExplain() {
+  const q = currentQ;
+  if (q.type === 'callsign') return `${q.item.code} = <strong>${q.item.name}</strong> (${q.item.country}). ${q.item.hint||''}`;
+  return `${q.item.code} = <strong>${q.item.name}</strong>, ${q.item.city} (${q.item.country})`;
+}
+
+function handleAnswer(btn, chosen, q) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  let isCorrect = chosen.code === q.item.code;
+
+  // mark buttons
+  document.querySelectorAll('.answer-btn').forEach(b => { b.disabled = true; });
+  highlightCorrect();
+  if (!isCorrect) btn.classList.add('wrong');
+
+  const fb = document.getElementById('feedback');
+  const showExplain = document.getElementById('setting-explain')?.checked !== false;
+  const useStreak = document.getElementById('setting-streak')?.checked !== false;
+
+  if (isCorrect) {
+    streak++; correct++;
+    const pts = (useStreak && streak >= 3) ? 150 : 100;
+    score += pts;
+    fb.className = 'feedback correct-fb show';
+    const bonus = (useStreak && streak >= 3) ? ` <strong>+50 בונוס רצף 🔥</strong>` : '';
+    const explain = showExplain ? ` ${getCorrectExplain()}` : '';
+    fb.innerHTML = `✅ <strong>נכון!</strong>${explain}${bonus}`;
+    if (streak >= 3 && streak % 3 === 0) showToast(`🔥 רצף של ${streak}! בונוס!`);
+  } else {
+    streak = 0; wrong++;
+    fb.className = 'feedback wrong-fb show';
+    fb.innerHTML = `❌ <strong>לא נכון.</strong> ${getCorrectExplain()}`;
+  }
+
+  updateStats();
+  document.getElementById('next-btn').classList.add('show');
+  if (qNum >= totalQ) document.getElementById('next-btn').innerHTML = 'סיים וראה תוצאות ←';
+}
+
+function updateStats() {
+  document.getElementById('stat-score').textContent = score;
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-wrong').textContent = wrong;
+  document.getElementById('stat-streak').textContent = streak;
+}
+
+function nextQuestion() { renderQuestion(); }
+
+function showResults() {
+  clearInterval(timerInterval);
+  showScreen('results');
+  const pct = Math.round((correct/totalQ)*100);
+  document.getElementById('res-score').textContent = score;
+  document.getElementById('rb-correct').textContent = correct;
+  document.getElementById('rb-wrong').textContent = wrong;
+  document.getElementById('rb-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = '100%';
+
+  let trophy='🎖️', tagline='המשך להתאמן!', sub='';
+  if (pct >= 90) { trophy='🏆'; tagline='מצוין! מאסטר ATC!'; sub='תוצאה יוצאת דופן — 90%+'; }
+  else if (pct >= 70) { trophy='🥇'; tagline='כל הכבוד!'; sub='תוצאה טובה מאוד'; }
+  else if (pct >= 50) { trophy='🥈'; tagline='לא רע!'; sub='עוד קצת אימון ותהיה שם'; }
+  else { trophy='📚'; tagline='זמן ללמוד!'; sub='חזור על החומר ונסה שוב'; }
+
+  document.getElementById('res-trophy').textContent = trophy;
+  document.getElementById('res-tagline').textContent = tagline;
+  document.getElementById('res-sub').textContent = sub;
+
+  const useConfetti = document.getElementById('setting-confetti')?.checked !== false;
+  if (pct >= 90 && useConfetti) fireConfetti();
+}
+
+function restartGame() { startGame(gameMode); }
+
+/* =========================================
+   CONFETTI
+   ========================================= */
+function fireConfetti() {
+  const colors = ['#4a9eff','#22c55e','#f59e0b','#a855f7','#ef4444','#ffffff'];
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left:${Math.random()*100}vw;
+        top:0;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        width:${6+Math.random()*6}px;
+        height:${6+Math.random()*6}px;
+        border-radius:${Math.random()>0.5?'50%':'2px'};
+        animation-duration:${2+Math.random()*2}s;
+        animation-delay:${Math.random()*0.5}s;
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    }, i * 20);
+  }
+}
+
+/* =========================================
+   TOAST
+   ========================================= */
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1700);
+}
+
+/* =========================================
+   ADMIN PANEL
+   ========================================= */
+let adminAuthed = false;
+const ADMIN_PW = 'acc2024';
+
+function openAdmin() {
+  document.getElementById('admin-overlay').classList.add('show');
+  if (adminAuthed) showAdminContent();
+  else showAdminLogin();
+}
+function closeAdmin() { document.getElementById('admin-overlay').classList.remove('show'); }
+
+function showAdminLogin() {
+  document.getElementById('admin-login-wrap').style.display = 'block';
+  document.getElementById('admin-content').style.display = 'none';
+  document.getElementById('admin-pw-input').value = '';
+  document.getElementById('admin-err').textContent = '';
+}
+function showAdminContent() {
+  document.getElementById('admin-login-wrap').style.display = 'none';
+  document.getElementById('admin-content').style.display = 'flex';
+  renderAdminLists();
+}
+function checkPassword() {
+  const pw = document.getElementById('admin-pw-input').value;
+  if (pw === ADMIN_PW) { adminAuthed = true; showAdminContent(); }
+  else { document.getElementById('admin-err').textContent = 'סיסמה שגויה'; }
+}
+
+function adminTab(name) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('atab-'+name).classList.add('active');
+}
+
+/* Add items */
+function addCallsign() {
+  const code = document.getElementById('cs-code').value.trim().toUpperCase();
+  const name = document.getElementById('cs-name').value.trim();
+  const country = document.getElementById('cs-country').value.trim();
+  const hint = document.getElementById('cs-hint').value.trim();
+  if (!code || !name || !country) { showToast('⚠️ מלא קוד, שם ומדינה'); return; }
+  if (CALLSIGNS.find(c=>c.code===code)) { showToast('קוד כבר קיים'); return; }
+  CALLSIGNS.push({ code, name, country, hint });
+  saveData(); renderAdminLists();
+  ['cs-code','cs-name','cs-country','cs-hint'].forEach(id => document.getElementById(id).value='');
+  showToast('✅ נוסף: ' + code);
+}
+
+function addAirport() {
+  const code = document.getElementById('ap-code').value.trim().toUpperCase();
+  const name = document.getElementById('ap-name').value.trim();
+  const city = document.getElementById('ap-city').value.trim();
+  const country = document.getElementById('ap-country').value.trim();
+  if (!code || !name || !city || !country) { showToast('⚠️ מלא את כל השדות'); return; }
+  if (AIRPORTS.find(a=>a.code===code)) { showToast('קוד כבר קיים'); return; }
+  AIRPORTS.push({ code, name, city, country });
+  saveData(); renderAdminLists();
+  ['ap-code','ap-name','ap-city','ap-country'].forEach(id => document.getElementById(id).value='');
+  showToast('✅ נוסף: ' + code);
+}
+
+function addTrivia() {
+  const question = document.getElementById('tr-question').value.trim();
+  const correct = document.getElementById('tr-correct').value.trim();
+  const w1 = document.getElementById('tr-w1').value.trim();
+  const w2 = document.getElementById('tr-w2').value.trim();
+  const w3 = document.getElementById('tr-w3').value.trim();
+  const explain = document.getElementById('tr-explain').value.trim();
+  const category = document.getElementById('tr-cat').value;
+  const difficulty = document.getElementById('tr-diff').value;
+  if (!question || !correct || !w1 || !w2 || !w3) { showToast('⚠️ מלא שאלה + 4 תשובות'); return; }
+  TRIVIA.push({ question, correct, wrong:[w1,w2,w3], explain, category, difficulty });
+  saveData(); renderAdminLists();
+  ['tr-question','tr-correct','tr-w1','tr-w2','tr-w3','tr-explain'].forEach(id => document.getElementById(id).value='');
+  showToast('✅ שאלת טריוויה נוספה');
+}
+
+/* Render lists */
+function renderAdminLists() {
+  const csl = document.getElementById('cs-list');
+  document.getElementById('cs-count').textContent = CALLSIGNS.length + ' פריטים';
+  csl.innerHTML = '';
+  CALLSIGNS.forEach((item, i) => {
+    const row = document.createElement('div'); row.className='item-row';
+    row.innerHTML = `<div class="item-row-code">${item.code}</div><div class="item-row-name">${item.name}<div class="item-row-sub">${item.country}</div></div><button class="item-delete" onclick="deleteCallsign(${i})">מחק</button>`;
+    csl.appendChild(row);
+  });
+  // airports
+  const apl = document.getElementById('ap-list');
+  document.getElementById('ap-count').textContent = AIRPORTS.length + ' פריטים';
+  apl.innerHTML = '';
+  AIRPORTS.forEach((item, i) => {
+    const row = document.createElement('div'); row.className='item-row';
+    row.innerHTML = `<div class="item-row-code">${item.code}</div><div class="item-row-name">${item.name}<div class="item-row-sub">${item.city}, ${item.country}</div></div><button class="item-delete" onclick="deleteAirport(${i})">מחק</button>`;
+    apl.appendChild(row);
+  });
+}
+
+function deleteCallsign(i) { CALLSIGNS.splice(i,1); saveData(); renderAdminLists(); showToast('נמחק'); }
+function deleteAirport(i)  { AIRPORTS.splice(i,1);  saveData(); renderAdminLists(); showToast('נמחק'); }
+
+/* Export / Import */
+function exportData() {
+  const data = JSON.stringify({ callsigns: CALLSIGNS, airports: AIRPORTS }, null, 2);
+  const box = document.getElementById('export-box');
+  box.style.display = 'block';
+  box.textContent = data;
+  navigator.clipboard?.writeText(data).then(() => showToast('📋 הועתק ללוח'));
+}
+
+function importData() {
+  try {
+    const raw = document.getElementById('import-box').value.trim();
+    const data = JSON.parse(raw);
+    if (data.callsigns) CALLSIGNS = data.callsigns;
+    if (data.airports)  AIRPORTS  = data.airports;
+    saveData(); renderAdminLists();
+    showToast('✅ יובא בהצלחה');
+    document.getElementById('import-box').value = '';
+  } catch(e) { showToast('❌ JSON לא תקין'); }
+}
+
+function resetAll() {
+  if (!confirm('למחוק את כל הנתונים ולחזור לברירת מחדל?')) return;
+  CALLSIGNS = [...DEFAULT_CALLSIGNS];
+  AIRPORTS  = [...DEFAULT_AIRPORTS];
+  saveData(); renderAdminLists();
+  showToast('🔄 אופס לברירת מחדל');
+}
+
+// Close admin on overlay click
+document.getElementById('admin-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('admin-overlay')) closeAdmin();
+});
+</script>
+</body>
+</html>
